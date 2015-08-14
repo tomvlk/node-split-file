@@ -10,6 +10,15 @@
 var fs      = require('fs');
 var async   = require('async');
 
+module.exports = {};
+
+/**
+ * Split file into number of parts
+ * @param {string} file
+ * @param {number} parts
+ * @param {splitCallback} callback
+ * @returns {*}
+ */
 module.exports.splitFile = function(file, parts, callback) {
     if(parts < 1) return callback("No parts are given!");
 
@@ -48,47 +57,127 @@ module.exports.splitFile = function(file, parts, callback) {
             }
         }
 
-        // Now the magic. Read buffers with length..
-        var partFiles = [];
-        async.eachSeries(partInfo, function(info, callback) {
-            // Open up a reader
-            var reader = fs.createReadStream(file, {
-                encoding: null,
-                start: info.start,
-                end: info.end - 1
-            });
-
-            // Part name (file name of part)
-            var partName = file + ".sf-part" + info.number;
-            partFiles.push(partName);
-
-            // Open up writer
-            var writer = fs.createWriteStream(partName);
-
-            // Pipe reader to writer
-            var pipe = reader.pipe(writer);
-
-            pipe.on('error', function(err) {
-                callback(err);
-            });
-
-            pipe.on('finish', function() {
-                callback();
-            });
-        }, function(err) {
-            if(err) {
-                return callback(err);
-            }
-            return callback(null, partFiles);
+        splitFile(file, partInfo, function(err, names) {
+            if(err) {return callback(err)}
+            return callback(null, names);
         });
     });
 };
 
+/**
+ * Split file into multiple parts based on max part size given
+ * @param {string} file
+ * @param {string} maxSize max part size in BYTES!
+ * @param {splitCallback} callback
+ * @returns {*}
+ */
+module.exports.splitFileBySize = function(file, maxSize, callback) {
+    if(maxSize < 1) return callback("No maxSize is given!");
 
-module.exports.splitFile.splitFileOnSize = function(file, partSize, callback) {
+    // Get information about the file
+    fs.stat(file, function(err, stat) {
+        // If its giving error, not a file, or the size = 0 the report back an error
+        if(err) return callback(err);
+        if(!stat.isFile) return callback("Given path to file is not valid, is not a file");
+        if(stat.size == 0) return callback("File is empty");
+
+        var totalSize = stat.size;
+
+        // Number of parts (exclusive last part!)
+        var parts = Math.floor(totalSize / maxSize);
+        var splitSize = maxSize;
+
+        // If size of the parts is 0 then you have more parts than bytes.
+        if(splitSize < 1) return callback("Too many parts, or file too small!");
+
+        // Get last split size, this is different from the others because it uses scrap value.
+        var lastSplitSize = totalSize - (splitSize * parts);
+
+        // Capture the partinfo in here:
+        var partInfo = [];
+
+        // Iterate the parts
+        for(var i = 0; i <= parts; i ++) {
+            partInfo[i] = {};
+
+            partInfo[i].number = i + 1;
+
+            // Set buffer read start position
+            partInfo[i].start = i * splitSize;
+
+            // Set total ending position
+            partInfo[i].end = (i * splitSize) + splitSize;
+            if(i == (parts)) {
+                partInfo[i].end = (i * splitSize) + lastSplitSize;
+            }
+        }
+
+        splitFile(file, partInfo, function(err, names) {
+            if(err) {return callback(err)}
+            return callback(null, names);
+        });
+    });
+};
+
+module.exports.mergeFiles = function(inputFile, outputFile, callback) {
 
 };
 
-module.exports.splitFile.mergeFiles = function(directory, output, callback) {
+/**
+ * Split the file, given by partinfos and filepath
+ * @access private
+ * @param {string} file
+ * @param {object} partInfo
+ * @param {splitCallback} callback
+ */
+function splitFile(file, partInfo, callback) {
+    // Now the magic. Read buffers with length..
 
-};
+    var partFiles = [];
+    async.eachSeries(partInfo, function(info, callback) {
+        // Open up a reader
+        var reader = fs.createReadStream(file, {
+            encoding: null,
+            start: info.start,
+            end: info.end - 1
+        });
+
+        // Part name (file name of part)
+        var partName = file + ".sf-part" + info.number;
+        partFiles.push(partName);
+
+        // Open up writer
+        var writer = fs.createWriteStream(partName);
+
+        // Pipe reader to writer
+        var pipe = reader.pipe(writer);
+
+        pipe.on('error', function(err) {
+            callback(err);
+        });
+
+        pipe.on('finish', function() {
+            callback();
+        });
+    }, function(err) {
+        if(err) {
+            return callback(err);
+        }
+        return callback(null, partFiles);
+    });
+}
+
+
+/**
+ * Callback on splitting files
+ * @callback splitCallback
+ * @param {object} error
+ * @param {object} filenames
+ */
+
+/**
+ * Callback on merging files
+ * @callback mergeCallback
+ * @param {object} error
+ * @param {string} filename
+ */
