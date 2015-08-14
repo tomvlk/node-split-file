@@ -1,0 +1,25 @@
+{
+  "name": "split-file",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Splitting and merging files with NodeJS",
+  "keywords": [
+    "split",
+    "file",
+    "stream"
+  ],
+  "author": "Tom Valk <tomvalk@lt-box.info",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:tomvlk/node-split-file.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tomvlk/node-split-file/issues"
+  },
+  "license": "MIT",
+  "main": "split-file",
+
+  "dependencies": {
+    "async": "^1.4.2"
+  }
+}
