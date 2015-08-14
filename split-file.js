@@ -9,6 +9,7 @@
  */
 var fs      = require('fs');
 var async   = require('async');
+var path    = require('path');
 
 module.exports = {};
 
@@ -119,8 +120,37 @@ module.exports.splitFileBySize = function(file, maxSize, callback) {
     });
 };
 
-module.exports.mergeFiles = function(inputFile, outputFile, callback) {
+/**
+ * Merge input files to output file.
+ * @param {string} inputFiles
+ * @param {string} outputFile
+ * @param {mergeCallback} callback
+ * @returns {*}
+ */
+module.exports.mergeFiles = function(inputFiles, outputFile, callback) {
+    if(inputFiles.length <= 0) return callback("Make sure you input an array with files as first parameter!");
 
+    var writer = fs.createWriteStream(outputFile, {
+        encoding: null
+    });
+
+    async.eachSeries(inputFiles, function(file, callback) {
+        var reader = fs.createReadStream(file, {
+            encoding: null
+        });
+
+        var pipe = reader.pipe( writer, {
+            end: false
+        });
+
+
+        reader.on('end', callback);
+    }, function(err) {
+        if(err) {
+            return callback(err);
+        }
+        return callback(null, outputFile);
+    });
 };
 
 /**
