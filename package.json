@@ -23,6 +23,6 @@
   "main": "split-file",
 
   "dependencies": {
-    "async": "^1.5.1"
+    "async": "^1.5.2"
   }
 }
