@@ -22,6 +22,6 @@
   "license": "MIT",
   "main": "split-file",
   "dependencies": {
-    "async": "^2.1.1"
+    "async": "^2.1.2"
   }
 }
