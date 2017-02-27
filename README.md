@@ -1,6 +1,13 @@
 # Split File
 Split and merge file in multiple parts. Splittable with number of parts or maximum bytes per part
 
+## Installation
+```
+npm i --save split-file
+```
+
+## Usage
+
 ### Splitting file with number of parts
 ```
 splitFile(file, callback(err, names));
@@ -59,6 +66,31 @@ splitFile.mergeFiles(names, __dirname + '/testfile-output.bin', function(err, fi
   console.log(err);
   console.log(file);
 });
+```
+
+# CLI Tool
+
+## Installation
+
+To use the module from the commandline you can install this package in your global context:
+```
+npm i -g split-file
+```
+*Some situations you need admin rights (sudo or windows run as admin)*
+
+## Usage
+
+The CLI tool works like you use it in your own package.
+
+```
+Usage: split-file -s input.bin 5
+       split-file -m output.bin part1 part2 ...
+
+ -s <input> <num_parts>
+    Split the input file in the number of parts given.
+
+ -m <output> <part> <part> ...
+    Merge the given parts into the output file.
 ```
 
 
