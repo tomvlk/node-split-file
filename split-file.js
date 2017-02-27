@@ -173,11 +173,24 @@ function splitFile(file, partInfo, callback) {
         });
 
         // Part name (file name of part)
-        var str = "" + info.number;
-        var pad = "000";
-        var partNumber = pad.substring(0, pad.length - str.length) + str;
-
-        var partName = file + ".sf-part" + partNumber;
+        // get the max number of digits to generate for part number
+        // ex. if original file is split into 4 files, then it will be 1
+        // ex. if original file is split into 14 files, then it will be 2
+        // etc.
+        var maxPaddingCount = String(partInfo.length).length;
+        // initial part number
+        // ex. '0', '00', '000', etc.
+        var currentPad = '';
+        for (var i = 0; i < maxPaddingCount; i++) {
+          currentPad += '0';
+        }
+        // construct part number for current file part
+        // <file>.sf-part01
+        // ...
+        // <file>.sf-part14
+        var unpaddedPartNumber = '' + info.number;
+        var partNumber = currentPad.substring(0, currentPad.length - unpaddedPartNumber.length) + unpaddedPartNumber;
+        var partName = file + '.sf-part' + partNumber;
         partFiles.push(partName);
 
         // Open up writer
