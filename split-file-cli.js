@@ -1,4 +1,6 @@
-var split = require('split-file');
+#!/usr/bin/env node
+
+var split = require('./split-file.js');
 
 if(require.main === module) {
   cli();

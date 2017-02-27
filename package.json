@@ -17,7 +17,7 @@
     "url": "https://github.com/tomvlk/node-split-file/issues"
   },
   "bin": {
-    "split-file": "bin/split-file"
+    "split-file": "split-file-cli.js"
   },
   "license": "MIT",
   "main": "split-file",
