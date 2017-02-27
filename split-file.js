@@ -173,7 +173,11 @@ function splitFile(file, partInfo, callback) {
         });
 
         // Part name (file name of part)
-        var partName = file + ".sf-part" + info.number;
+        var str = "" + info.number;
+        var pad = "000";
+        var partNumber = pad.substring(0, pad.length - str.length) + str;
+
+        var partName = file + ".sf-part" + partNumber;
         partFiles.push(partName);
 
         // Open up writer
