@@ -7,34 +7,38 @@
 /**
  *  Require Modules
  */
+var Promise = require('bluebird');
 var fs      = require('fs');
-var async   = require('async');
 var path    = require('path');
 
-module.exports = {};
+
+/**
+ * Split File module.
+ */
+var SplitFile = function () {};
 
 /**
  * Split file into number of parts
  * @param {string} file
  * @param {number} parts
- * @param {splitCallback} callback
- * @returns {*}
+ * 
+ * @returns {Promise}
  */
-module.exports.splitFile = function(file, parts, callback) {
-    if(parts < 1) return callback("No parts are given!");
+SplitFile.prototype.splitFile = function(file, parts) {
+    var self = this;
+    
+    // Validate parameters.
+    if (parts < 1) return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
 
-    // Get information about the file
-    fs.stat(file, function(err, stat) {
-        // If its giving error, not a file, or the size = 0 the report back an error
-        if(err) return callback(err);
-        if(!stat.isFile) return callback("Given path to file is not valid, is not a file");
-        if(stat.size == 0) return callback("File is empty");
+    return Promise.promisify(fs.stat)(file).then(function (stat) {
+        if (! stat.isFile) return Promise.reject(new Error("Given file is not valid"));
+        if (! stat.size)   return Promise.reject(new Error("File is empty"));
 
         var totalSize = stat.size;
         var splitSize = Math.floor(totalSize / parts);
 
         // If size of the parts is 0 then you have more parts than bytes.
-        if(splitSize < 1) return callback("Too many parts, or file too small!");
+        if(splitSize < 1) return Promise.reject(new Error("Too many parts, or file too small!"));
 
         // Get last split size, this is different from the others because it uses scrap value.
         var lastSplitSize = splitSize + totalSize % parts;
@@ -44,24 +48,22 @@ module.exports.splitFile = function(file, parts, callback) {
 
         // Iterate the parts
         for(var i = 0; i < parts; i ++) {
-            partInfo[i] = {};
+            partInfo[i] = {
+                number: i + 1,
 
-            partInfo[i].number = i + 1;
+                // Set buffer read start position
+                start: i * splitSize,
 
-            // Set buffer read start position
-            partInfo[i].start = i * splitSize;
+                // Set total ending position
+                end: (i * splitSize) + splitSize
+            };
 
-            // Set total ending position
-            partInfo[i].end = (i * splitSize) + splitSize;
             if(i == (parts - 1)) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
 
-        splitFile(file, partInfo, function(err, names) {
-            if(err) {return callback(err)}
-            return callback(null, names);
-        });
+        return splitFile(file, partInfo);
     });
 };
 
@@ -72,15 +74,15 @@ module.exports.splitFile = function(file, parts, callback) {
  * @param {splitCallback} callback
  * @returns {*}
  */
-module.exports.splitFileBySize = function(file, maxSize, callback) {
-    if(maxSize < 1) return callback("No maxSize is given!");
+SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
+    var self = this;
+    
+    // Validate parameters.
+    if (parts < 1) return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
 
-    // Get information about the file
-    fs.stat(file, function(err, stat) {
-        // If its giving error, not a file, or the size = 0 the report back an error
-        if(err) return callback(err);
-        if(!stat.isFile) return callback("Given path to file is not valid, is not a file");
-        if(stat.size == 0) return callback("File is empty");
+    return Promise.promisify(fs.stat)(file).then(function (stat) {
+        if (! stat.isFile) return Promise.reject(new Error("Given file is not valid"));
+        if (! stat.size)   return Promise.reject(new Error("File is empty"));
 
         var totalSize = stat.size;
 
@@ -89,7 +91,7 @@ module.exports.splitFileBySize = function(file, maxSize, callback) {
         var splitSize = maxSize;
 
         // If size of the parts is 0 then you have more parts than bytes.
-        if(splitSize < 1) return callback("Too many parts, or file too small!");
+        if(splitSize < 1) return Promise.reject(new Error("Too many parts, or file too small!"));
 
         // Get last split size, this is different from the others because it uses scrap value.
         var lastSplitSize = totalSize - (splitSize * parts);
@@ -98,25 +100,23 @@ module.exports.splitFileBySize = function(file, maxSize, callback) {
         var partInfo = [];
 
         // Iterate the parts
-        for(var i = 0; i <= parts; i ++) {
-            partInfo[i] = {};
+        for(var i = 0; i < parts; i ++) {
+            partInfo[i] = {
+                number: i + 1,
 
-            partInfo[i].number = i + 1;
+                // Set buffer read start position
+                start: i * splitSize,
 
-            // Set buffer read start position
-            partInfo[i].start = i * splitSize;
+                // Set total ending position
+                end: (i * splitSize) + splitSize
+            };
 
-            // Set total ending position
-            partInfo[i].end = (i * splitSize) + splitSize;
-            if(i == (parts)) {
+            if(i == (parts - 1)) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
 
-        splitFile(file, partInfo, function(err, names) {
-            if(err) {return callback(err)}
-            return callback(null, names);
-        });
+        return splitFile(file, partInfo);
     });
 };
 
@@ -124,32 +124,29 @@ module.exports.splitFileBySize = function(file, maxSize, callback) {
  * Merge input files to output file.
  * @param {string} inputFiles
  * @param {string} outputFile
- * @param {mergeCallback} callback
- * @returns {*}
+ *
+ * @returns {Promise}
  */
-module.exports.mergeFiles = function(inputFiles, outputFile, callback) {
-    if(inputFiles.length <= 0) return callback("Make sure you input an array with files as first parameter!");
+SplitFile.prototype.mergeFiles = function(inputFiles, outputFile, callback) {
+    var self = this;
+    
+    // Validate parameters.
+    if (inputFiles.length <= 0) return Promise.reject(new Error("Make sure you input an array with files as first parameter!"));
 
     var writer = fs.createWriteStream(outputFile, {
         encoding: null
     });
 
-    async.eachSeries(inputFiles, function(file, callback) {
-        var reader = fs.createReadStream(file, {
-            encoding: null
+    return Promise.mapSeries(inputFiles, function (file) {
+        return new Promise(function (resolve, reject) {
+            var reader = fs.createReadStream(file, { encoding: null });
+            reader.pipe( writer, { end: false });
+            reader.on('error', reject);
+            reader.on('end', resolve);
         });
-
-        var pipe = reader.pipe( writer, {
-            end: false
-        });
-
-
-        reader.on('end', callback);
-    }, function(err) {
-        if(err) {
-            return callback(err);
-        }
-        return callback(null, outputFile);
+    }).then(function() {
+        writer.close();
+        return Promise.resolve(outputFile);
     });
 };
 
@@ -158,73 +155,57 @@ module.exports.mergeFiles = function(inputFiles, outputFile, callback) {
  * @access private
  * @param {string} file
  * @param {object} partInfo
- * @param {splitCallback} callback
+ * 
+ * @returns {Promise}
  */
 function splitFile(file, partInfo, callback) {
     // Now the magic. Read buffers with length..
 
     var partFiles = [];
-    async.eachSeries(partInfo, function(info, callback) {
-        // Open up a reader
-        var reader = fs.createReadStream(file, {
-            encoding: null,
-            start: info.start,
-            end: info.end - 1
+
+    return Promise.mapSeries(partInfo, function (info) {
+        return new Promise(function (resolve, reject) {
+            // Open up a reader
+            var reader = fs.createReadStream(file, {
+                encoding: null,
+                start: info.start,
+                end: info.end - 1
+            });
+
+            // Part name (file name of part)
+            // get the max number of digits to generate for part number
+            // ex. if original file is split into 4 files, then it will be 1
+            // ex. if original file is split into 14 files, then it will be 2
+            // etc.
+            var maxPaddingCount = String(partInfo.length).length;
+            // initial part number
+            // ex. '0', '00', '000', etc.
+            var currentPad = '';
+            for (var i = 0; i < maxPaddingCount; i++) {
+                currentPad += '0';
+            }
+            // construct part number for current file part
+            // <file>.sf-part01
+            // ...
+            // <file>.sf-part14
+            var unpaddedPartNumber = '' + info.number;
+            var partNumber = currentPad.substring(0, currentPad.length - unpaddedPartNumber.length) + unpaddedPartNumber;
+            var partName = file + '.sf-part' + partNumber;
+
+            partFiles.push(partName);
+
+            // Open up writer
+            var writer = fs.createWriteStream(partName);
+
+            // Pipe reader to writer
+            var pipe = reader.pipe(writer);
+
+            pipe.on('error', reject);
+            pipe.on('finish', resolve);
         });
-
-        // Part name (file name of part)
-        // get the max number of digits to generate for part number
-        // ex. if original file is split into 4 files, then it will be 1
-        // ex. if original file is split into 14 files, then it will be 2
-        // etc.
-        var maxPaddingCount = String(partInfo.length).length;
-        // initial part number
-        // ex. '0', '00', '000', etc.
-        var currentPad = '';
-        for (var i = 0; i < maxPaddingCount; i++) {
-          currentPad += '0';
-        }
-        // construct part number for current file part
-        // <file>.sf-part01
-        // ...
-        // <file>.sf-part14
-        var unpaddedPartNumber = '' + info.number;
-        var partNumber = currentPad.substring(0, currentPad.length - unpaddedPartNumber.length) + unpaddedPartNumber;
-        var partName = file + '.sf-part' + partNumber;
-        partFiles.push(partName);
-
-        // Open up writer
-        var writer = fs.createWriteStream(partName);
-
-        // Pipe reader to writer
-        var pipe = reader.pipe(writer);
-
-        pipe.on('error', function(err) {
-            callback(err);
-        });
-
-        pipe.on('finish', function() {
-            callback();
-        });
-    }, function(err) {
-        if(err) {
-            return callback(err);
-        }
-        return callback(null, partFiles);
-    });
+    }).then(function () {
+        return Promise.resolve(partFiles);
+    });;
 }
 
-
-/**
- * Callback on splitting files
- * @callback splitCallback
- * @param {object} error
- * @param {object} filenames
- */
-
-/**
- * Callback on merging files
- * @callback mergeCallback
- * @param {object} error
- * @param {string} filename
- */
+module.exports = new SplitFile();

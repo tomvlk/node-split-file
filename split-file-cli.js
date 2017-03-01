@@ -28,14 +28,11 @@ function cliSplit() {
     return printLegend();
   }
 
-  split.splitFile(file, parts, function (err, names) {
-    if (err) {
-      console.log('An error occured:');
-      console.log(err);
-      return;
-    }
-
+  split.splitFile(file, parts).then(function (names) {
     console.log('Successfully splitted into: ' + names);
+  }).catch(function (err) {
+    console.log('An error occured:');
+    console.log(err);
   });
 }
 
@@ -47,14 +44,11 @@ function cliMerge() {
     files.push(process.argv[i]);
   }
 
-  split.mergeFiles(files, output_file, function (err, names) {
-    if (err) {
-      console.log('An error occured:');
-      console.log(err);
-      return;
-    }
-
+  split.mergeFiles(files, output_file).then(function(names) {
     console.log('Succesfully merged the parts into ' + output_file);
+  }).catch(function (err) {
+    console.log('An error occured:');
+    console.log(err);
   });
 }
 
