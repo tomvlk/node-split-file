@@ -16,6 +16,9 @@
   "bugs": {
     "url": "https://github.com/tomvlk/node-split-file/issues"
   },
+  "scripts": {
+    "test": "jest"
+  },
   "bin": {
     "split-file": "split-file-cli.js"
   },
@@ -23,5 +26,9 @@
   "main": "split-file",
   "dependencies": {
     "bluebird": "^3.4.7"
+  },
+  "devDependencies": {
+    "jest": "^19.0.2",
+    "mocha": "^3.2.0"
   }
 }

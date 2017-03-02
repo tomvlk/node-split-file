@@ -122,7 +122,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
 
 /**
  * Merge input files to output file.
- * @param {string} inputFiles
+ * @param {string[]} inputFiles
  * @param {string} outputFile
  *
  * @returns {Promise}

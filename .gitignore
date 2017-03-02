@@ -55,6 +55,12 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 
-testlocal.js
-testfile.bin*
-testfile.zip*
+
+## App
+/testlocal.js
+/testfile.bin*
+/testfile.zip*
+
+## Testing output
+__tests__/files/*sf-part*
+__tests__/files/*.out
