@@ -1,4 +1,8 @@
 # Split File
+[![Build Status](https://travis-ci.org/tomvlk/node-split-file.svg?branch=master)](https://travis-ci.org/tomvlk/node-split-file)
+
+**WARNING: You are visiting the master branch which is on alpha, documentation hasn't been adjusted for alpha**
+
 Split and merge file in multiple parts. Splittable with number of parts or maximum bytes per part
 
 ## Installation
