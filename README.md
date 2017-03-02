@@ -1,80 +1,95 @@
 # Split File
 [![Build Status](https://travis-ci.org/tomvlk/node-split-file.svg?branch=master)](https://travis-ci.org/tomvlk/node-split-file)
 
-**WARNING: You are visiting the master branch which is on alpha, documentation hasn't been adjusted for alpha**
-
 Split and merge file in multiple parts. Splittable with number of parts or maximum bytes per part
 
-## Installation
+## Programmatically usage
+This section contains information on how to use the split-file module in your code.
+
+### Installation
+You can install and save an entry to your package.json with the following command:
 ```
 npm i --save split-file
 ```
 
-## Usage
+### Usage
+All methods return a Promise (bluebird) which results in some respose if some.
 
-### Splitting file with number of parts
+#### Splitting file with number of parts
 ```
-splitFile(file, callback(err, names));
+splitFile(file) => Promise<string[]>
 ```
+**Consumes**:
 - file: Path to the file to split.
-- callback: 
-  - err: Filled with string when error happend. Null for no error.
-  - names: Array with full parts paths.
+
+**Produces**:
+- Promise<string[]>: Promise with results in an array of part names (full paths) of the splitted files.
 
 Example:
 ```javascript
-var splitFile = require('./split-file');
+const splitFile = require('split-file');
 
-splitFile.splitFile(__dirname + '/testfile.bin', 3, function(err, names) {
-  console.log(err);
-  console.log(names);
-});
+splitFile.splitFile(__dirname + '/testfile.bin', 3)
+  .then((names) => {
+    console.log(names);
+  })
+  .catch((err) => {
+    console.log('Error: ', err);
+  });
 ```
 
-### Splitting file with maximum bytes per part
+#### Splitting file with maximum bytes per part
 ```
-splitFileBySize(file, maxSize, callback(err, names))
+splitFileBySize(file, maxSize) => Promise<string[]>
 ```
+**Consumes**:
 - file: Path to the file to split.
 - maxSize: Max size of the splitted parts. (bytes)
-- callback: 
-  - err: Filled with string when error happend. Null for no error.
-  - names: Array with full parts paths.
+
+**Produces**:
+- Promise<string[]>: Promise with results in an array of part names (full paths) of the splitted files.
 
 Example:
 ```javascript
-var splitFile = require('./split-file');
+const splitFile = require('split-file');
 
-splitFile.splitFileBySize(__dirname + '/testfile.bin', 457000, function(err, names) {
-  console.log(err);
-  console.log(names);
-});
+splitFile.splitFileBySize(__dirname + '/testfile.bin', 457000)
+  .then((names) => {
+    console.log(names);
+  })
+  .catch((err) => {
+    console.log('Error: ', err);
+  });
 ```
 
-### Merge parts
+#### Merge parts
 ```
-mergeFiles(names, outputFile, callback(err, filename)
+mergeFiles(names, outputFile) => Promise<>
 ```
+**Consumes**:
 - names: Input files, array with full part paths.
 - outputFile: Full path of the output file.
-- callback:
-  - err: Filled with string when error happend. Null for no error.
-  - filename: The output filename (confirm)
+
+**Produces**:
+- Promise<>: Promise that results in an empty resolving.
 
 
 Example:
 ```javascript
-var splitFile = require('./split-file');
+const splitFile = require('split-file');
 
-splitFile.mergeFiles(names, __dirname + '/testfile-output.bin', function(err, file) {
-  console.log(err);
-  console.log(file);
-});
+splitFile.mergeFiles(names, __dirname + '/testfile-output.bin')
+  .then(() => {
+    console.log('Done!');
+  })
+  .catch((err) => {
+    console.log('Error: ', err);
+  });
 ```
 
-# CLI Tool
+## CLI Tool
 
-## Installation
+### Installation
 
 To use the module from the commandline you can install this package in your global context:
 ```
@@ -82,7 +97,7 @@ npm i -g split-file
 ```
 *Some situations you need admin rights (sudo or windows run as admin)*
 
-## Usage
+### Usage
 
 The CLI tool works like you use it in your own package.
 
