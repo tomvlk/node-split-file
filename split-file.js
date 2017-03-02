@@ -171,7 +171,7 @@ SplitFile.prototype.mergeFiles = function(inputFiles, outputFile) {
  * 
  * @returns {Promise}
  */
-SplitFile.prototype.__splitFile = function (file, partInfo, callback) {
+SplitFile.prototype.__splitFile = function (file, partInfo) {
     // Now the magic. Read buffers with length..
     var partFiles = [];
 
