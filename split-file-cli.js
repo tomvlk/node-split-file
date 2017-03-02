@@ -72,7 +72,7 @@ Cli.prototype.merge = function () {
     files.push(process.argv[i]);
   }
 
-  split.mergeFiles(files, output_file).then(function(names) {
+  split.mergeFiles(files, output_file).then(function() {
     console.log('Succesfully merged the parts into ' + output_file);
   }).catch(function (err) {
     console.log('An error occured:');
