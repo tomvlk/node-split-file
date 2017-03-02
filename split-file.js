@@ -9,8 +9,6 @@
  */
 var Promise = require('bluebird');
 var fs      = require('fs');
-var path    = require('path');
-
 
 /**
  * Split File module.
@@ -28,17 +26,25 @@ SplitFile.prototype.splitFile = function(file, parts) {
     var self = this;
     
     // Validate parameters.
-    if (parts < 1) return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
+    if (parts < 1) {
+        return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
+    }
 
     return Promise.promisify(fs.stat)(file).then(function (stat) {
-        if (! stat.isFile) return Promise.reject(new Error("Given file is not valid"));
-        if (! stat.size)   return Promise.reject(new Error("File is empty"));
+        if (! stat.isFile) {
+            return Promise.reject(new Error("Given file is not valid"));
+        }
+        if (! stat.size) {
+            return Promise.reject(new Error("File is empty"));
+        }
 
         var totalSize = stat.size;
         var splitSize = Math.floor(totalSize / parts);
 
         // If size of the parts is 0 then you have more parts than bytes.
-        if(splitSize < 1) return Promise.reject(new Error("Too many parts, or file too small!"));
+        if(splitSize < 1) {
+            return Promise.reject(new Error("Too many parts, or file too small!"));
+        }
 
         // Get last split size, this is different from the others because it uses scrap value.
         var lastSplitSize = splitSize + totalSize % parts;
@@ -47,7 +53,7 @@ SplitFile.prototype.splitFile = function(file, parts) {
         var partInfo = [];
 
         // Iterate the parts
-        for(var i = 0; i < parts; i ++) {
+        for (var i = 0; i < parts; i ++) {
             partInfo[i] = {
                 number: i + 1,
 
@@ -58,12 +64,12 @@ SplitFile.prototype.splitFile = function(file, parts) {
                 end: (i * splitSize) + splitSize
             };
 
-            if(i == (parts - 1)) {
+            if (i === (parts - 1)) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
 
-        return splitFile(file, partInfo);
+        return self.__splitFile(file, partInfo);
     });
 };
 
@@ -71,18 +77,23 @@ SplitFile.prototype.splitFile = function(file, parts) {
  * Split file into multiple parts based on max part size given
  * @param {string} file
  * @param {string} maxSize max part size in BYTES!
- * @param {splitCallback} callback
- * @returns {*}
+ * @returns {Promise}
  */
-SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
+SplitFile.prototype.splitFileBySize = function(file, maxSize) {
     var self = this;
     
     // Validate parameters.
-    if (parts < 1) return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
+    if (parts < 1) {
+        return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
+    }
 
     return Promise.promisify(fs.stat)(file).then(function (stat) {
-        if (! stat.isFile) return Promise.reject(new Error("Given file is not valid"));
-        if (! stat.size)   return Promise.reject(new Error("File is empty"));
+        if (! stat.isFile) {
+            return Promise.reject(new Error("Given file is not valid"));
+        }
+        if (! stat.size) {
+            return Promise.reject(new Error("File is empty"));
+        }
 
         var totalSize = stat.size;
 
@@ -91,7 +102,9 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
         var splitSize = maxSize;
 
         // If size of the parts is 0 then you have more parts than bytes.
-        if(splitSize < 1) return Promise.reject(new Error("Too many parts, or file too small!"));
+        if(splitSize < 1) {
+            return Promise.reject(new Error("Too many parts, or file too small!"));
+        }
 
         // Get last split size, this is different from the others because it uses scrap value.
         var lastSplitSize = totalSize - (splitSize * parts);
@@ -100,7 +113,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
         var partInfo = [];
 
         // Iterate the parts
-        for(var i = 0; i < parts; i ++) {
+        for (var i = 0; i < parts; i ++) {
             partInfo[i] = {
                 number: i + 1,
 
@@ -111,12 +124,12 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
                 end: (i * splitSize) + splitSize
             };
 
-            if(i == (parts - 1)) {
+            if (i === (parts - 1)) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
 
-        return splitFile(file, partInfo);
+        return self.__splitFile(file, partInfo);
     });
 };
 
@@ -127,11 +140,11 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize, callback) {
  *
  * @returns {Promise}
  */
-SplitFile.prototype.mergeFiles = function(inputFiles, outputFile, callback) {
-    var self = this;
-    
+SplitFile.prototype.mergeFiles = function(inputFiles, outputFile) {
     // Validate parameters.
-    if (inputFiles.length <= 0) return Promise.reject(new Error("Make sure you input an array with files as first parameter!"));
+    if (inputFiles.length <= 0) {
+        return Promise.reject(new Error("Make sure you input an array with files as first parameter!"));
+    }
 
     var writer = fs.createWriteStream(outputFile, {
         encoding: null
@@ -158,9 +171,8 @@ SplitFile.prototype.mergeFiles = function(inputFiles, outputFile, callback) {
  * 
  * @returns {Promise}
  */
-function splitFile(file, partInfo, callback) {
+SplitFile.prototype.__splitFile = function (file, partInfo, callback) {
     // Now the magic. Read buffers with length..
-
     var partFiles = [];
 
     return Promise.mapSeries(partInfo, function (info) {
