@@ -81,11 +81,6 @@ SplitFile.prototype.splitFile = function(file, parts) {
  */
 SplitFile.prototype.splitFileBySize = function(file, maxSize) {
     var self = this;
-    
-    // Validate parameters.
-    if (parts < 1) {
-        return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
-    }
 
     return Promise.promisify(fs.stat)(file).then(function (stat) {
         if (! stat.isFile) {
