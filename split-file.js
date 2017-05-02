@@ -93,7 +93,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
         var totalSize = stat.size;
 
         // Number of parts (exclusive last part!)
-        var parts = Math.floor(totalSize / maxSize); //
+        var parts = Math.ceil(totalSize / maxSize);
         var splitSize = maxSize;
 
         // If size of the parts is 0 then you have more parts than bytes.
@@ -119,7 +119,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
                 end: (i * splitSize) + splitSize
             };
 
-            if (i === parts-1) {
+            if (i === parts) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
