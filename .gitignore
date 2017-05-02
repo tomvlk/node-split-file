@@ -62,5 +62,6 @@ crashlytics-build.properties
 /testfile.zip*
 
 ## Testing output
-__tests__/files/*sf-part*
+__tests__/files/*/*sf-part*
+__tests__/files/*/*.out
 __tests__/files/*.out

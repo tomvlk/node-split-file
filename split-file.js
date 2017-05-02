@@ -19,12 +19,12 @@ var SplitFile = function () {};
  * Split file into number of parts
  * @param {string} file
  * @param {number} parts
- * 
+ *
  * @returns {Promise}
  */
 SplitFile.prototype.splitFile = function(file, parts) {
     var self = this;
-    
+
     // Validate parameters.
     if (parts < 1) {
         return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
@@ -93,7 +93,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
         var totalSize = stat.size;
 
         // Number of parts (exclusive last part!)
-        var parts = Math.floor(totalSize / maxSize);
+        var parts = Math.floor(totalSize / maxSize); //
         var splitSize = maxSize;
 
         // If size of the parts is 0 then you have more parts than bytes.
@@ -119,7 +119,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
                 end: (i * splitSize) + splitSize
             };
 
-            if (i === (parts - 1)) {
+            if (i === parts-1) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
@@ -163,7 +163,7 @@ SplitFile.prototype.mergeFiles = function(inputFiles, outputFile) {
  * @access private
  * @param {string} file
  * @param {object} partInfo
- * 
+ *
  * @returns {Promise}
  */
 SplitFile.prototype.__splitFile = function (file, partInfo) {
