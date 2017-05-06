@@ -28,7 +28,7 @@
     "bluebird": "^3.4.7"
   },
   "devDependencies": {
-    "jest": "^19.0.2",
+    "jest": "^20.0.0",
     "mocha": "^3.2.0"
   }
 }
