@@ -1,4 +1,6 @@
 # Split File
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/tomvlk/node-split-file.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/tomvlk/node-split-file.svg?branch=master)](https://travis-ci.org/tomvlk/node-split-file)
 
 Split and merge file in multiple parts. Splittable with number of parts or maximum bytes per part
