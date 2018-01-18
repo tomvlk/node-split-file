@@ -29,6 +29,6 @@
   },
   "devDependencies": {
     "jest": "^22.0.0",
-    "mocha": "^4.0.0"
+    "mocha": "^5.0.0"
   }
 }
