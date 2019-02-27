@@ -117,13 +117,11 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
 
                 // Set total ending position
                 end: (i * splitSize) + splitSize
-            };
-
-            if (i === (parts - 1)) {
-                partInfo[i].end = (i * splitSize) + lastSplitSize;
-            }
+            };            
         }
-
+        // recalculate the size of the last chunk
+        partInfo[partInfo.length - 1].end = (i * splitSize) + lastSplitSize;
+        
         return self.__splitFile(file, partInfo);
     });
 };
