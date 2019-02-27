@@ -119,7 +119,7 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
                 end: (i * splitSize) + splitSize
             };
 
-            if (i === parts) {
+            if (i === (parts - 1)) {
                 partInfo[i].end = (i * splitSize) + lastSplitSize;
             }
         }
