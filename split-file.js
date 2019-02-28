@@ -94,15 +94,12 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
 
         // Number of parts (exclusive last part!)
         var parts = Math.ceil(totalSize / maxSize);
-        var splitSize = maxSize;
+        var splitSize = Math.round(maxSize);
 
         // If size of the parts is 0 then you have more parts than bytes.
         if(splitSize < 1) {
             return Promise.reject(new Error("Too many parts, or file too small!"));
         }
-
-        // Get last split size, this is different from the others because it uses scrap value.
-        var lastSplitSize = totalSize - (splitSize * parts);
 
         // Capture the partinfo in here:
         var partInfo = [];
@@ -119,8 +116,9 @@ SplitFile.prototype.splitFileBySize = function(file, maxSize) {
                 end: (i * splitSize) + splitSize
             };
         }
+
         // recalculate the size of the last chunk
-        partInfo[partInfo.length - 1].end = (i * splitSize) + lastSplitSize;
+        partInfo[partInfo.length - 1].end = totalSize;
 
         return self.__splitFile(file, partInfo);
     });
