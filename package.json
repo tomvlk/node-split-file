@@ -25,10 +25,10 @@
   "license": "MIT",
   "main": "split-file",
   "dependencies": {
-    "bluebird": "^3.7.0"
+    "bluebird": "^3.7.2"
   },
   "devDependencies": {
     "jest": "^24.9.0",
-    "mocha": "^6.2.1"
+    "mocha": "^6.2.2"
   }
 }
