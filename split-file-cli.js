@@ -36,8 +36,9 @@ Cli.prototype.help = function () {
   console.log("");
   console.log(" -s <input> <num_parts>");
   console.log("    Split the input file in the number of parts given.");
+  console.log("");
   console.log(" -x <input> <max_size>"); 
-  console.log("    Split the input file into multiple parts with file size maximum of max_size bytes
+  console.log("    Split the input file into multiple parts with file size maximum of max_size bytes");
   console.log("");
   console.log(" -m <output> <part> <part> ...");
   console.log("    Merge the given parts into the output file.");

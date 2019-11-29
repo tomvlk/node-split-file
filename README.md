@@ -103,10 +103,14 @@ The CLI tool works like you use it in your own package.
 
 ```
 Usage: split-file -s input.bin 5
+       split-file -x input.bin 457000
        split-file -m output.bin part1 part2 ...
 
  -s <input> <num_parts>
     Split the input file in the number of parts given.
+
+ -x <input> <max_size>
+    Split the input file into multiple parts with file size maximum of max_size bytes
 
  -m <output> <part> <part> ...
     Merge the given parts into the output file.
