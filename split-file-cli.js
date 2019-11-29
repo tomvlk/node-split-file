@@ -17,6 +17,8 @@ Cli.prototype.parse = function (option) {
     case '-s':
       this.method = this.split;
       break;
+    case '-x':
+      this.method = this.splitFileBySize
     default:
       this.method = this.help;
   }
@@ -29,10 +31,13 @@ Cli.prototype.parse = function (option) {
  */
 Cli.prototype.help = function () {
   console.log("Usage: split-file -s input.bin 5");
+  console.log("       split-file -x input.bin 457000"); 
   console.log("       split-file -m output.bin part1 part2 ...");
   console.log("");
   console.log(" -s <input> <num_parts>");
   console.log("    Split the input file in the number of parts given.");
+  console.log(" -x <input> <max_size>"); 
+  console.log("    Split the input file into multiple parts with file size maximum of max_size bytes
   console.log("");
   console.log(" -m <output> <part> <part> ...");
   console.log("    Merge the given parts into the output file.");
@@ -61,6 +66,19 @@ Cli.prototype.split = function () {
   });
 }
 
+Cli.prototype.splitFileBySize = function() {
+  var file = process.argv[3];
+  var max_size = parseInt(process.argv[4]);
+  if (isNaN(max_size)) {
+    return this.help();
+  }
+  split.splitFileBySize(file, max_size).then(function (names) {
+    console.log('Successfully splitted into: ' + names);
+  }).catch(function (err) {
+    console.log('An error occured:');
+    console.log(err);
+  });
+}
 /**
  * Merge command.
  */
