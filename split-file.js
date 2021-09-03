@@ -204,7 +204,6 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
 
       if (dest) {
         const filename = basename(partName);
-        partFiles.push(dest + "/" + filename);
         if (dest.charAt(dest.length - 1) !== "/") {
           outputFile(dest + "/" + filename);
           partFiles.push(dest + "/" + filename);
