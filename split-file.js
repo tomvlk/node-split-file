@@ -9,7 +9,7 @@
  */
 var Promise = require("bluebird");
 var fs = require("fs");
-const { basename } = require("path");
+const { basename, resolve } = require("path");
 /**
  * Split File module.
  */
@@ -195,8 +195,6 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
       var partNumber = currentPad.substring(0, currentPad.length - unpaddedPartNumber.length) + unpaddedPartNumber;
       var partName = file + ".sf-part" + partNumber;
 
-      partFiles.push(partName);
-
       const outputFile = (filename) => {
         const writer = fs.createWriteStream(filename);
         const pipe = reader.pipe(writer);
@@ -206,13 +204,17 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
 
       if (dest) {
         const filename = basename(partName);
+        partFiles.push(dest + "/" + filename);
         if (dest.charAt(dest.length - 1) !== "/") {
           outputFile(dest + "/" + filename);
+          partFiles.push(dest + "/" + filename);
         } else {
           outputFile(dest + filename);
+          partFiles.push(dest + filename);
         }
       } else {
         outputFile(partName);
+        partFiles.push(partName);
       }
       // Pipe reader to writer
     });
