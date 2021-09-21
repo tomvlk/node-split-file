@@ -4,7 +4,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const testRoot = __dirname;
-const testSubFolders = ['test1', 'test2'];
+const testSubFolders = ['test1', 'test2', 'output'];
 
 function cleanUp() {
     testSubFolders.forEach((subFolder) => {
@@ -13,7 +13,7 @@ function cleanUp() {
             if (fileName.indexOf('sf-part') != -1 || fileName.indexOf('.out') != -1) {
                 fs.unlinkSync(testRoot + '/files/' + subFolder + '/' + fileName);
             }
-        })
+        });
     });
 }
 function checksum (str, algorithm, encoding) {
@@ -138,6 +138,41 @@ describe('split and merge on number of parts', () => {
             });
     });
 
+
+    afterAll(() => {
+        cleanUp();
+    });
+});
+
+
+describe('split files to destination folder', () => {
+    test('should output files to specific folder', (done) => {
+        const input = __dirname + '/files/test2/sample.pdf';
+        const outputFolder = __dirname + '/files/output';
+        if (! fs.existsSync(outputFolder)) {
+            fs.mkdirSync(outputFolder);
+        }
+        const inputStat = fs.statSync(input);
+        const numberOfParts = 512;
+
+        return splitFile.splitFile(input, numberOfParts, outputFolder).then((parts) => {
+            let totalPartsSize = 0;
+            parts.forEach((part) => {
+                let stat = fs.statSync(part);
+                totalPartsSize += stat.size;
+            });
+            expect(totalPartsSize).toBe(inputStat.size);
+
+            let dirFiles = fs.readdirSync(outputFolder);
+            expect(dirFiles.length).toBe(numberOfParts);
+
+            done();
+    	}).catch((err) => {
+            console.error(err);
+            expect(err).toBeNull();
+            done();
+        });
+    });
 
     afterAll(() => {
         cleanUp();
