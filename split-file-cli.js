@@ -54,7 +54,7 @@ Cli.prototype.help = function () {
 Cli.prototype.split = function () {
   var file = process.argv[3];
   var parts = parseInt(process.argv[4]);
-  
+
   if (isNaN(parts)) {
     return this.help();
   }

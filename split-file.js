@@ -10,6 +10,7 @@
 var Promise = require("bluebird");
 var fs = require("fs");
 const { basename, resolve } = require("path");
+
 /**
  * Split File module.
  */
@@ -205,12 +206,10 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
       if (dest) {
         const filename = basename(partName);
         if (dest.charAt(dest.length - 1) !== "/") {
-          outputFile(dest + "/" + filename);
-          partFiles.push(dest + "/" + filename);
-        } else {
-          outputFile(dest + filename);
-          partFiles.push(dest + filename);
+          dest += "/";
         }
+        outputFile(dest + filename);
+        partFiles.push(dest + filename);
       } else {
         outputFile(partName);
         partFiles.push(partName);
