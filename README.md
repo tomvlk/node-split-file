@@ -17,10 +17,11 @@ All methods return a Promise (bluebird) which results in some respose if some.
 
 #### Splitting file with number of parts
 ```
-splitFile(file) => Promise<string[]>
+splitFile(file, dest?) => Promise<string[]>
 ```
 **Consumes**:
 - file: Path to the file to split.
+- dest: Folder for output, defaults to . (current folder)
 
 **Produces**:
 - Promise<string[]>: Promise with results in an array of part names (full paths) of the splitted files.
@@ -40,11 +41,12 @@ splitFile.splitFile(__dirname + '/testfile.bin', 3)
 
 #### Splitting file with maximum bytes per part
 ```
-splitFileBySize(file, maxSize) => Promise<string[]>
+splitFileBySize(file, maxSize, dest?) => Promise<string[]>
 ```
 **Consumes**:
 - file: Path to the file to split.
 - maxSize: Max size of the splitted parts. (bytes)
+- dest: Folder for output, defaults to . (current folder)
 
 **Produces**:
 - Promise<string[]>: Promise with results in an array of part names (full paths) of the splitted files.
