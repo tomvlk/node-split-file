@@ -1,6 +1,6 @@
 {
   "name": "split-file",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "private": false,
   "description": "Splitting and merging files with NodeJS",
   "keywords": [
