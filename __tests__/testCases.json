@@ -1,0 +1,26 @@
+[
+    {
+        "description": "test1",
+        "inputFile": "test1/sample.zip",
+        "outputFolder": "output",
+        "numberOfParts": 100
+    },
+    {
+        "description": "test2",
+        "inputFile": "test2/sample.pdf",
+        "outputFolder": "output",
+        "numberOfParts": 512
+    },
+    {
+        "description": "test3",
+        "inputFile": "test3/large.txt",
+        "outputFolder": "output",
+        "numberOfParts": 100
+    },    
+    {
+        "description": "test4",
+        "inputFile": "test4/small.txt",
+        "outputFolder": "output",
+        "numberOfParts": 100
+    }
+]

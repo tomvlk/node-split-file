@@ -67,3 +67,6 @@ crashlytics-build.properties
 __tests__/files/*/*sf-part*
 __tests__/files/*/*.out
 __tests__/files/*.out
+
+## Testing File - too large
+__tests__/files/test3/*
