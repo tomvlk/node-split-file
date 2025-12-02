@@ -24,9 +24,8 @@
   },
   "license": "MIT",
   "main": "split-file",
-  "dependencies": {
-    "bluebird": "^3.7.2"
-  },
+  "types": "split-file.d.ts",
+  "dependencies": {},
   "devDependencies": {
     "jest": "^26.6.3",
     "mocha": "^8.4.0"
