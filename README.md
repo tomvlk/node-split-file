@@ -1,5 +1,5 @@
 # Split File
-[![Build Status](https://travis-ci.org/tomvlk/node-split-file.svg?branch=master)](https://travis-ci.org/tomvlk/node-split-file)
+[![CI](https://github.com/tomvlk/node-split-file/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/tomvlk/node-split-file/actions/workflows/ci.yml)
 
 Split and merge file in multiple parts. Splittable with number of parts or maximum bytes per part
 
@@ -13,7 +13,7 @@ npm i --save split-file
 ```
 
 ### Usage
-All methods return a Promise (bluebird) which results in some respose if some.
+All methods return a Promise (native) which results in some respose if some.
 
 #### Splitting file with number of parts
 ```

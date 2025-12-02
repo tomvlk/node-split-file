@@ -7,9 +7,13 @@
 /**
  *  Require Modules
  */
-var Promise = require("bluebird");
 var fs = require("fs");
 const { basename, resolve } = require("path");
+const { promisify } = require("util");
+
+// Helpers
+const statAsync = fs.promises && typeof fs.promises.stat === "function" ? (file) => fs.promises.stat(file) : promisify(fs.stat);
+const mapSeries = (arr, iterator) => arr.reduce((p, item) => p.then(() => iterator(item)), Promise.resolve());
 
 /**
  * Split File module.
@@ -31,7 +35,7 @@ SplitFile.prototype.splitFile = function (file, parts, dest) {
     return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
   }
 
-  return Promise.promisify(fs.stat)(file).then(function (stat) {
+  return statAsync(file).then(function (stat) {
     if (!stat.isFile) {
       return Promise.reject(new Error("Given file is not valid"));
     }
@@ -83,7 +87,7 @@ SplitFile.prototype.splitFile = function (file, parts, dest) {
 SplitFile.prototype.splitFileBySize = function (file, maxSize, dest) {
   var self = this;
 
-  return Promise.promisify(fs.stat)(file).then(function (stat) {
+  return statAsync(file).then(function (stat) {
     if (!stat.isFile) {
       return Promise.reject(new Error("Given file is not valid"));
     }
@@ -142,7 +146,7 @@ SplitFile.prototype.mergeFiles = function (inputFiles, outputFile) {
     encoding: null,
   });
 
-  return Promise.mapSeries(inputFiles, function (file) {
+  return mapSeries(inputFiles, function (file) {
     return new Promise(function (resolve, reject) {
       var reader = fs.createReadStream(file, { encoding: null });
       reader.pipe(writer, { end: false });
@@ -167,7 +171,7 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
   // Now the magic. Read buffers with length..
   var partFiles = [];
 
-  return Promise.mapSeries(partInfo, function (info) {
+  return mapSeries(partInfo, function (info) {
     return new Promise(function (resolve, reject) {
       // Open up a reader
       var reader = fs.createReadStream(file, {
