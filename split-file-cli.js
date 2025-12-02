@@ -19,6 +19,7 @@ Cli.prototype.parse = function (option) {
       break;
     case '-x':
       this.method = this.splitFileBySize
+      break;
     default:
       this.method = this.help;
   }
