@@ -17,7 +17,7 @@
     "url": "https://github.com/tomvlk/node-split-file/issues"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules --runInBand node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
   },
   "bin": {
     "split-file": "split-file-cli.js"
