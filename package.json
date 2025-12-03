@@ -24,6 +24,7 @@
   },
   "license": "MIT",
   "main": "split-file",
+  "type": "module",
   "types": "split-file.d.ts",
   "dependencies": {
     "bluebird": "^3.7.2"
