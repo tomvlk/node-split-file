@@ -1,7 +1,7 @@
 
-const splitFile = require('../split-file');
-const fs = require('fs');
-const crypto = require('crypto');
+import { splitFile, splitFileBySize, mergeFiles} from '../split-file';
+import fs from 'fs';
+import { crypto } from 'crypto';
 
 const testRoot = __dirname;
 const testSubFolders = ['test1', 'test2', 'output'];
@@ -34,7 +34,7 @@ describe('split and merge on size', () => {
         const inputStat = fs.statSync(input);
         const splitSize = 100000;
 
-        return splitFile.splitFileBySize(input, splitSize).then((parts) => {
+        return splitFileBySize(input, splitSize).then((parts) => {
             let totalPartsSize = 0;
             parts.forEach((part) => {
                 let stat = fs.statSync(part);
@@ -65,7 +65,7 @@ describe('split and merge on size', () => {
             }
         })
 
-        splitFile.mergeFiles(files, output)
+        mergeFiles(files, output)
             .then(() => {
                 const originalStat = fs.statSync(input);
                 const mergedStat = fs.statSync(output);
@@ -94,7 +94,7 @@ describe('split and merge on number of parts', () => {
         const inputStat = fs.statSync(input);
         const numberOfParts = 512;
 
-        return splitFile.splitFile(input, numberOfParts).then((parts) => {
+        return splitFile(input, numberOfParts).then((parts) => {
             let totalPartsSize = 0;
             parts.forEach((part) => {
                 let stat = fs.statSync(part);
@@ -123,7 +123,7 @@ describe('split and merge on number of parts', () => {
             }
         })
 
-        splitFile.mergeFiles(files, output)
+        mergeFiles(files, output)
             .then(() => {
                 const originalStat = fs.statSync(input);
                 const mergedStat = fs.statSync(output);
@@ -155,7 +155,7 @@ describe('split files to destination folder', () => {
         const inputStat = fs.statSync(input);
         const numberOfParts = 512;
 
-        return splitFile.splitFile(input, numberOfParts, outputFolder).then((parts) => {
+        return splitFile(input, numberOfParts, outputFolder).then((parts) => {
             let totalPartsSize = 0;
             parts.forEach((part) => {
                 let stat = fs.statSync(part);
