@@ -17,7 +17,7 @@
     "url": "https://github.com/tomvlk/node-split-file/issues"
   },
   "scripts": {
-    "test": "jest --runInBand"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "bin": {
     "split-file": "split-file-cli.js"
@@ -26,11 +26,8 @@
   "main": "split-file",
   "type": "module",
   "types": "split-file.d.ts",
-  "dependencies": {
-    "bluebird": "^3.7.2"
-  },
   "devDependencies": {
-    "jest": "^26.6.3",
-    "mocha": "^8.4.0"
+    "jest": "^30.2.0",
+    "mocha": "^11.7.5"
   }
 }
