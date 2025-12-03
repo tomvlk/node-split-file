@@ -1,180 +1,156 @@
+import { splitFile, splitFileBySize, mergeFiles } from '../split-file';
+import {jest} from '@jest/globals'
+import fs from 'fs';
+import { createHash } from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const splitFile = require('../split-file');
-const fs = require('fs');
-const crypto = require('crypto');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const testRoot = __dirname;
 const testSubFolders = ['test1', 'test2', 'output'];
 
 function cleanUp() {
     testSubFolders.forEach((subFolder) => {
-        let folder = fs.readdirSync(testRoot + '/files/' + subFolder + '/');
-        folder.forEach((fileName) => {
-            if (fileName.indexOf('sf-part') != -1 || fileName.indexOf('.out') != -1) {
-                fs.unlinkSync(testRoot + '/files/' + subFolder + '/' + fileName);
+        const folderPath = path.join(testRoot, 'files', subFolder);
+        if (!fs.existsSync(folderPath)) return;
+
+        const files = fs.readdirSync(folderPath);
+        files.forEach((fileName) => {
+            if (fileName.includes('.sf-part') || fileName.includes('.out')) {
+                try {
+                    fs.unlinkSync(path.join(folderPath, fileName));
+                } catch (err) {} // File is already deleted
             }
         });
     });
 }
-function checksum (str, algorithm, encoding) {
-    return crypto.createHash(algorithm || 'md5').update(str, 'utf8').digest(encoding || 'hex');
+
+function checksum(data, algorithm = 'md5', encoding = 'hex') {
+    return createHash(algorithm).update(data, 'utf8').digest(encoding);
 }
-function checksumFile(file, algorithm, encoding) {
-    let data = fs.readFileSync(file);
-    return checksum(data, algorithm || 'md5', encoding || 'hex');
+
+function checksumFile(filePath, algorithm, encoding) {
+    const data = fs.readFileSync(filePath);
+    return checksum(data, algorithm, encoding);
 }
 
 const md5Zip = '561a3c354bbca14cf501d5e252383387';
 const md5Pdf = '6bb492c383240fcd87b5c42958c2e482';
 
-
 describe('split and merge on size', () => {
-    test('should create the parts based on bytes of split parts', (done) => {
-        const input = __dirname + '/files/test1/sample.zip';
-        const inputStat = fs.statSync(input);
+    afterAll(cleanUp);
+
+    test('should create the parts based on bytes of split parts', async () => {
+        const input = path.join(__dirname, 'files/test1/sample.zip');
+        const inputStat = await fs.promises.stat(input);
         const splitSize = 100000;
 
-        return splitFile.splitFileBySize(input, splitSize).then((parts) => {
-            let totalPartsSize = 0;
-            parts.forEach((part) => {
-                let stat = fs.statSync(part);
-                expect(stat.size).toBeLessThanOrEqual(splitSize);
+        try {
+            const parts = await splitFileBySize(input, splitSize);
+            let totalSize = 0;
 
-                totalPartsSize += stat.size;
+            parts.forEach((part) => {
+                const stat = fs.statSync(part);
+                expect(stat.size).toBeLessThanOrEqual(splitSize);
+                totalSize += stat.size;
             });
-            expect(totalPartsSize).toBe(inputStat.size);
-            done();
-    	}).catch((err) => {
+
+            expect(totalSize).toBe(inputStat.size);
+        } catch (err) {
             console.error(err);
             expect(err).toBeNull();
-            done();
-        });
+        }
     });
 
-    test('should merge the splitted files', (done) => {
-        let files = [];
+    test('should merge the split files', async () => {
+        const dirPath = path.join(testRoot, 'files/test1');
+        const fileList = await fs.promises.readdir(dirPath)
+        const files = fileList.filter(file => file.includes('.sf-part')).map(file => path.join(dirPath, file));
 
-        const base = __dirname + '/files/test1/sample.zip.sf-part';
-        const output = __dirname + '/files/test1/sample.out';
-        const input = __dirname + '/files/test1/sample.zip'
+        const output = path.join(dirPath, 'sample.out');
+        const input = path.join(dirPath, 'sample.zip');
+        
 
-        const dir = fs.readdirSync(testRoot + '/files/test1/');
-        dir.forEach((file) => {
-            if (file.indexOf('sf-part') != -1) {
-                files.push(testRoot + '/files/test1/' + file);
-            }
-        })
+        try {
+            await mergeFiles(files, output);
+            const originalSize = await fs.promises.stat(input).size;
+            const mergedSize = await fs.promises.stat(output).size;
 
-        splitFile.mergeFiles(files, output)
-            .then(() => {
-                const originalStat = fs.statSync(input);
-                const mergedStat = fs.statSync(output);
-
-                expect(mergedStat.size).toBe(originalStat.size);
-                expect(md5Zip).toBe(checksumFile(output));
-                done();
-            }).catch((err) => {
-                console.error(err);
-                expect(err).toBeNull();
-                done();
-            });
-    });
-
-
-    afterAll(() => {
-        cleanUp();
+            expect(mergedSize).toBe(originalSize);
+            expect(checksumFile(output)).toBe(md5Zip);
+        } catch (err) {
+            console.error(err);
+            expect(err).toBeNull();
+        }
     });
 });
 
+describe('split and merge by number of parts', () => {
+    afterAll(cleanUp);
 
-
-describe('split and merge on number of parts', () => {
-    test('should create the parts based on number of given parts', (done) => {
-        const input = __dirname + '/files/test2/sample.pdf';
+    test('should split file into N parts', async () => {
+        const input = path.join(__dirname, 'files/test2/sample.pdf');
         const inputStat = fs.statSync(input);
         const numberOfParts = 512;
 
-        return splitFile.splitFile(input, numberOfParts).then((parts) => {
-            let totalPartsSize = 0;
-            parts.forEach((part) => {
-                let stat = fs.statSync(part);
-                totalPartsSize += stat.size;
-            });
-            expect(totalPartsSize).toBe(inputStat.size);
-            done();
-    	}).catch((err) => {
+        try {
+            const parts = await splitFile(input, numberOfParts);
+            const totalSize = parts.reduce((acc, part) => acc + fs.statSync(part).size, 0);
+
+            expect(totalSize).toBe(inputStat.size);
+        } catch (err) {
             console.error(err);
             expect(err).toBeNull();
-            done();
-        });
+        }
     });
 
-    test('should merge the splitted files', (done) => {
-        let files = [];
+    test('should merge split files', async () => {
+        const dirPath = path.join(testRoot, 'files/test2');
+        const files = fs.readdirSync(dirPath)
+            .filter(file => file.includes('.sf-part'))
+            .map(file => path.join(dirPath, file));
 
-        const base = __dirname + '/files/test2/sample.pdf.sf-part';
-        const output = __dirname + '/files/test2/sample.out';
-        const input = __dirname + '/files/test2/sample.pdf'
+        const output = path.join(dirPath, 'sample.out');
+        const input = path.join(dirPath, 'sample.pdf');
 
-        const dir = fs.readdirSync(testRoot + '/files/test2/');
-        dir.forEach((file) => {
-            if (file.indexOf('sf-part') != -1) {
-                files.push(testRoot + '/files/test2/' + file);
-            }
-        })
+        try {
+            await mergeFiles(files, output);
+            const originalSize = fs.statSync(input).size;
+            const mergedSize = fs.statSync(output).size;
 
-        splitFile.mergeFiles(files, output)
-            .then(() => {
-                const originalStat = fs.statSync(input);
-                const mergedStat = fs.statSync(output);
-
-                expect(mergedStat.size).toBe(originalStat.size);
-                expect(md5Pdf).toBe(checksumFile(output));
-                done();
-            }).catch((err) => {
-                console.error(err);
-                expect(err).toBeNull();
-                done();
-            });
-    });
-
-
-    afterAll(() => {
-        cleanUp();
+            expect(mergedSize).toBe(originalSize);
+            expect(checksumFile(output)).toBe(md5Pdf);
+        } catch (err) {
+            console.error(err);
+            expect(err).toBeNull();
+        }
     });
 });
-
 
 describe('split files to destination folder', () => {
-    test('should output files to specific folder', (done) => {
-        const input = __dirname + '/files/test2/sample.pdf';
-        const outputFolder = __dirname + '/files/output';
-        if (! fs.existsSync(outputFolder)) {
-            fs.mkdirSync(outputFolder);
-        }
+    afterAll(cleanUp);
+
+    test('should files to specific folder', async () => {
+        const input = path.join(__dirname, 'files/test2/sample.pdf');
+        const outputFolder = path.join(__dirname, 'files/output');
+        if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder);
+
         const inputStat = fs.statSync(input);
         const numberOfParts = 512;
 
-        return splitFile.splitFile(input, numberOfParts, outputFolder).then((parts) => {
-            let totalPartsSize = 0;
-            parts.forEach((part) => {
-                let stat = fs.statSync(part);
-                totalPartsSize += stat.size;
-            });
-            expect(totalPartsSize).toBe(inputStat.size);
+        try {
+            const parts = await splitFile(input, numberOfParts, outputFolder);
+            const totalSize = parts.reduce((acc, part) => acc + fs.statSync(part).size, 0);
 
-            let dirFiles = fs.readdirSync(outputFolder);
+            expect(totalSize).toBe(inputStat.size);
+
+            const dirFiles = fs.readdirSync(outputFolder);
             expect(dirFiles.length).toBe(numberOfParts);
-
-            done();
-    	}).catch((err) => {
+        } catch (err) {
             console.error(err);
             expect(err).toBeNull();
-            done();
-        });
-    });
-
-    afterAll(() => {
-        cleanUp();
+        }
     });
 });

@@ -1,20 +1,17 @@
-/*!
- * Split File
- * MIT License
- * Tom Valk
- */
+import fs from "fs";
+import { basename, resolve } from "path";
 
-/**
- *  Require Modules
- */
-var Promise = require("bluebird");
-var fs = require("fs");
-const { basename, resolve } = require("path");
+// helper as replacement for Bluebird mapSeries
+async function mapSeries(items, asyncFunc) {
+  const results = [];
 
-/**
- * Split File module.
- */
-var SplitFile = function () {};
+  for (const item of items) {
+    results.push(await asyncFunc(item));
+  }
+
+  return results;
+}
+
 
 /**
  * Split file into number of parts
@@ -23,16 +20,17 @@ var SplitFile = function () {};
  *
  * @returns {Promise}
  */
-SplitFile.prototype.splitFile = function (file, parts, dest) {
-  var self = this;
-
-  // Validate parameters.
+export async function splitFile(file, parts, dest) {
   if (parts < 1) {
-    return Promise.reject(new Error("Parameter 'parts' is invalid, must contain an integer value."));
+    return Promise.reject(
+      new Error(
+        "Parameter 'parts is invalid. It must be a valid positive integer."
+      )
+    );
   }
 
-  return Promise.promisify(fs.stat)(file).then(function (stat) {
-    if (!stat.isFile) {
+  return fs.promises.stat(file).then(function (stat) {
+    if (!stat.isFile()) {
       return Promise.reject(new Error("Given file is not valid"));
     }
     if (!stat.size) {
@@ -70,9 +68,9 @@ SplitFile.prototype.splitFile = function (file, parts, dest) {
       }
     }
 
-    return self.__splitFile(file, partInfo, dest);
+    return __splitFile(file, partInfo, dest);
   });
-};
+}
 
 /**
  * Split file into multiple parts based on max part size given
@@ -80,10 +78,9 @@ SplitFile.prototype.splitFile = function (file, parts, dest) {
  * @param {string} maxSize max part size in BYTES!
  * @returns {Promise}
  */
-SplitFile.prototype.splitFileBySize = function (file, maxSize, dest) {
-  var self = this;
+export async function splitFileBySize(file, maxSize, dest) {
 
-  return Promise.promisify(fs.stat)(file).then(function (stat) {
+  return fs.promises.stat(file).then(async function (stat) {
     if (!stat.isFile) {
       return Promise.reject(new Error("Given file is not valid"));
     }
@@ -121,7 +118,7 @@ SplitFile.prototype.splitFileBySize = function (file, maxSize, dest) {
     // recalculate the size of the last chunk
     partInfo[partInfo.length - 1].end = totalSize;
 
-    return self.__splitFile(file, partInfo, dest);
+    return __splitFile(file, partInfo, dest);
   });
 };
 
@@ -132,7 +129,7 @@ SplitFile.prototype.splitFileBySize = function (file, maxSize, dest) {
  *
  * @returns {Promise}
  */
-SplitFile.prototype.mergeFiles = function (inputFiles, outputFile) {
+export async function mergeFiles (inputFiles, outputFile) {
   // Validate parameters.
   if (inputFiles.length <= 0) {
     return Promise.reject(new Error("Make sure you input an array with files as first parameter!"));
@@ -142,7 +139,7 @@ SplitFile.prototype.mergeFiles = function (inputFiles, outputFile) {
     encoding: null,
   });
 
-  return Promise.mapSeries(inputFiles, function (file) {
+  return mapSeries(inputFiles, function (file) {
     return new Promise(function (resolve, reject) {
       var reader = fs.createReadStream(file, { encoding: null });
       reader.pipe(writer, { end: false });
@@ -163,11 +160,11 @@ SplitFile.prototype.mergeFiles = function (inputFiles, outputFile) {
  *
  * @returns {Promise}
  */
-SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
+async function __splitFile (file, partInfo, dest) {
   // Now the magic. Read buffers with length..
   var partFiles = [];
 
-  return Promise.mapSeries(partInfo, function (info) {
+  return mapSeries(partInfo, function (info) {
     return new Promise(function (resolve, reject) {
       // Open up a reader
       var reader = fs.createReadStream(file, {
@@ -182,19 +179,14 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
       // ex. if original file is split into 14 files, then it will be 2
       // etc.
       var maxPaddingCount = String(partInfo.length).length;
-      // initial part number
-      // ex. '0', '00', '000', etc.
-      var currentPad = "";
-      for (var i = 0; i < maxPaddingCount; i++) {
-        currentPad += "0";
-      }
       // construct part number for current file part
       // <file>.sf-part01
       // ...
       // <file>.sf-part14
-      var unpaddedPartNumber = "" + info.number;
-      var partNumber = currentPad.substring(0, currentPad.length - unpaddedPartNumber.length) + unpaddedPartNumber;
+      const partNumber = String(info.number).padStart(maxPaddingCount, "0");
       var partName = file + ".sf-part" + partNumber;
+
+  
 
       const outputFile = (filename) => {
         const writer = fs.createWriteStream(filename);
@@ -216,9 +208,7 @@ SplitFile.prototype.__splitFile = function (file, partInfo, dest) {
       }
       // Pipe reader to writer
     });
-  }).then(function () {
+  }).then(() => {
     return Promise.resolve(partFiles);
   });
 };
-
-module.exports = new SplitFile();
